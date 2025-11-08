@@ -55,33 +55,30 @@ Kubernetes Cluster on EC2
 ```bash
 git clone https://github.com/frenzyali/reddit-clone-k8s.git
 cd reddit-clone-k8s
+```
+
+```bash
 2️⃣ Build Docker Image
-bash
-Copy code
+
 docker build -t <your-username>/reddit-clone .
 docker push <your-username>/reddit-clone
+```
+
+```bash
 3️⃣ Deploy on Kubernetes
-bash
-Copy code
-kubectl apply -f reddit-deployment.yaml
-kubectl apply -f reddit-service.yaml
+
+kubectl apply -f Deployment.yaml
+kubectl apply -f service.yaml
+kubectl apply -f ingress.yaml
+```
+
+```bash
 4️⃣ Access the Service
 Minikube Tunnel:
 
-bash
-Copy code
 minikube service reddit-clone-service --url
 Port Forward (Permanent Localhost):
-
-bash
-Copy code
 kubectl port-forward service/reddit-clone-service 31000:3000
 Then open: http://localhost:31000
 
-Notes
-Designed for demo and learning purposes
-
-Can be scaled by updating replicas in the deployment YAML
-
-CI/CD integration possible for automated builds and deploys
 ```
