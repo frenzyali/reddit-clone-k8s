@@ -31,9 +31,6 @@ Kubernetes Cluster on EC2
 ├─ Deployment: reddit-clone
 └─ Service: NodePort (external access)
 
-yaml
-Copy code
-
 ---
 
 ## Features
@@ -87,10 +84,4 @@ Designed for demo and learning purposes
 Can be scaled by updating replicas in the deployment YAML
 
 CI/CD integration possible for automated builds and deploys
-
-Author
-Ali Hussain – DevOps & Kubernetes Enthusiast
-
-GitHub: frenzyali
-
-LinkedIn: [Your LinkedIn Profile]
+```
