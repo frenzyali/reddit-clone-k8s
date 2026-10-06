@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      # .npmrc sets legacy-peer-deps (chakra-ui 1.x peers on framer-motion <=6)
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+
+  k8s-manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate manifests against the Kubernetes schemas
+        run: |
+          docker run --rm -v "$PWD":/w ghcr.io/yannh/kubeconform:latest \
+            -strict -summary /w/Deployment.yaml /w/service.yaml /w/ingress.yaml
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (placeholder Firebase values)
+        run: |
+          docker build -t reddit-clone:ci \
+            --build-arg NEXT_PUBLIC_FIREBASE_API_KEY=ci-placeholder \
+            --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=example.firebaseapp.com \
+            --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID=example \
+            --build-arg NEXT_PUBLIC_FIREBASE_APP_ID=1:1:web:ci .
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: error
+
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan manifests, dependencies and secrets
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          exit-code: "0" # report-only; flip to "1" once findings are triaged

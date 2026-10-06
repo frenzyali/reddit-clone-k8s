@@ -44,7 +44,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ toggleView }) => {
               placeholder="email"
               type="email"
               mb={2}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
               fontSize="10pt"
               _placeholder={{ color: "gray.500" }}
               _hover={{

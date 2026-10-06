@@ -1,0 +1,4 @@
+# Show the Kubernetes manifests in the language bar (YAML is hidden by default)
+*.yaml linguist-detectable=true
+package-lock.json linguist-generated
+functions/package-lock.json linguist-generated

@@ -140,7 +140,7 @@ const Recommendations: React.FC<RecommendationsProps> = () => {
                       <Button
                         height="22px"
                         fontSize="8pt"
-                        onClick={(event) => {
+                        onClick={(event: React.MouseEvent) => {
                           event.stopPropagation();
                           onJoinLeaveCommunity(item, isJoined);
                         }}

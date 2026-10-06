@@ -3,6 +3,7 @@ import { Box, Flex } from "@chakra-ui/react";
 
 interface PageContentLayoutProps {
   maxWidth?: string;
+  children?: React.ReactNode;
 }
 
 // Assumes array of two children are passed
@@ -10,6 +11,7 @@ const PageContentLayout: React.FC<PageContentLayoutProps> = ({
   children,
   maxWidth,
 }) => {
+  const kids = children as React.ReactNode[] | undefined;
   return (
     <Flex justify="center" p="16px 0px">
       <Flex width="95%" justify="center" maxWidth={maxWidth || "860px"}>
@@ -18,7 +20,7 @@ const PageContentLayout: React.FC<PageContentLayoutProps> = ({
           width={{ base: "100%", md: "65%" }}
           mr={{ base: 0, md: 6 }}
         >
-          {children && children[0 as keyof typeof children]}
+          {kids && kids[0]}
         </Flex>
         {/* Right Content */}
         <Box
@@ -26,7 +28,7 @@ const PageContentLayout: React.FC<PageContentLayoutProps> = ({
           flexDirection="column"
           flexGrow={1}
         >
-          {children && children[1 as keyof typeof children]}
+          {kids && kids[1]}
         </Box>
       </Flex>
     </Flex>

@@ -30,7 +30,7 @@ const CommentInput: React.FC<CommentInputProps> = ({
           </Text>
           <Textarea
             value={comment}
-            onChange={(event) => setComment(event.target.value)}
+            onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setComment(event.target.value)}
             placeholder="What are your thoughts?"
             fontSize="10pt"
             borderRadius={4}
