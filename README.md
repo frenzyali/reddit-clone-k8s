@@ -24,7 +24,7 @@ The Next.js app talks to Firebase directly from the browser; Kubernetes only run
 | App | Next.js 13, React 18, Chakra UI, Recoil, TypeScript |
 | Backend services | Firebase Auth, Firestore, Storage, Cloud Functions (`functions/`) |
 | Orchestration | Kubernetes: Deployment, Service (NodePort), Ingress |
-| Packaging | Multi-stage Dockerfile (Node 18 Alpine) |
+| Packaging | Multi-stage Dockerfile (Node 24 LTS Alpine, pinned) |
 | CI | GitHub Actions: ESLint, `tsc`, Docker build + hadolint, kubeconform, Trivy |
 
 ## Quick start
@@ -85,7 +85,7 @@ npm run dev                    # http://localhost:3000
 
 - `Deployment.yaml` uses the untagged (`latest`) image. Pin a version tag once you publish one.
 - `ingress.yaml` contains placeholder hosts (`domain.com`) and a `/test` path; edit them before applying.
-- `.npmrc` sets `legacy-peer-deps=true` because Chakra UI 1.x expects framer-motion 6 or older while the app uses 8.
+- `.npmrc` sets `legacy-peer-deps=true` because Chakra UI 1.x expects framer-motion 6 or older while the app uses 8. With that flag npm skips peer dependencies, so `@chakra-ui/system` is listed explicitly in `package.json`.
 - Firebase settings are baked into the image at build time, so each environment needs its own image build.
 
 ## Cleanup
