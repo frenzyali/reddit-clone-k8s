@@ -23,7 +23,7 @@ The Next.js app talks to Firebase directly from the browser; Kubernetes only run
 |---|---|
 | App | Next.js 13, React 18, Chakra UI, Recoil, TypeScript |
 | Backend services | Firebase Auth, Firestore, Storage, Cloud Functions (`functions/`) |
-| Orchestration | Kubernetes: Deployment, Service (NodePort), Ingress |
+| Orchestration | Kubernetes: Deployment, Service (NodePort), PodDisruptionBudget, Ingress |
 | Packaging | Multi-stage Dockerfile (Node 24 LTS Alpine, pinned) |
 | CI | GitHub Actions: ESLint, `tsc`, Docker build + hadolint, kubeconform, Trivy |
 
@@ -54,7 +54,7 @@ docker push <you>/reddit-clone:1.0
 Then deploy:
 
 ```bash
-kubectl apply -f Deployment.yaml -f service.yaml
+kubectl apply -f Deployment.yaml -f service.yaml -f pdb.yaml
 kubectl get pods -l app=reddit-clone        # wait for both pods to be Running
 
 # Minikube:
@@ -75,9 +75,11 @@ npm run dev                    # http://localhost:3000
 
 ## Design decisions
 
-- **Stateless web tier.** All state lives in Firebase, so replicas are interchangeable and `replicas: 2` is safe without volumes.
+- **Stateless web tier.** All state lives in Firebase, so replicas are interchangeable and `replicas: 2` is safe without persistent volumes.
 - **Config at build time.** Firebase settings are `NEXT_PUBLIC_*` variables that Next.js inlines into the JavaScript bundle, so they must be supplied when the image is built. They are public client identifiers; access control is enforced by Firebase security rules, not by hiding them.
 - **Health probes and limits.** The Deployment has readiness/liveness probes on `/` and CPU/memory requests and limits, so traffic only reaches ready pods and a runaway pod can't starve the node.
+- **Locked-down containers.** Pods run as UID 1000 (the image's `node` user; numeric so the kubelet can enforce `runAsNonRoot`), with the RuntimeDefault seccomp profile, all Linux capabilities dropped, privilege escalation disabled and a read-only root filesystem. The only writable path is an `emptyDir` at `/app/.next/cache`, where Next.js stores optimised images.
+- **PodDisruptionBudget.** `minAvailable: 1` means a node drain or cluster upgrade evicts the two replicas one at a time, so the app stays up during voluntary disruptions.
 - **NodePort first, Ingress optional.** A fixed `nodePort: 31000` works on any bare cluster or EC2 host without a load balancer; the Ingress shows host-based routing once a controller exists.
 - **Manifests validated in CI.** kubeconform checks each manifest against the Kubernetes schemas on every push, so broken YAML is caught before `kubectl apply`.
 
@@ -87,11 +89,12 @@ npm run dev                    # http://localhost:3000
 - `ingress.yaml` contains placeholder hosts (`domain.com`) and a `/test` path; edit them before applying.
 - `.npmrc` sets `legacy-peer-deps=true` because Chakra UI 1.x expects framer-motion 6 or older while the app uses 8. With that flag npm skips peer dependencies, so `@chakra-ui/system` is listed explicitly in `package.json`.
 - Firebase settings are baked into the image at build time, so each environment needs its own image build.
+- The Next.js image cache is a per-pod `emptyDir`, so it is not shared between replicas and starts empty after every pod restart.
 
 ## Cleanup
 
 ```bash
-kubectl delete -f service.yaml -f Deployment.yaml
+kubectl delete -f pdb.yaml -f service.yaml -f Deployment.yaml
 kubectl delete -f ingress.yaml          # only if you applied it
 minikube delete                         # if you used Minikube
 ```

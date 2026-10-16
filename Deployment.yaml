@@ -14,6 +14,13 @@ spec:
       labels:
         app: reddit-clone
     spec:
+      securityContext:
+        runAsNonRoot: true
+        # numeric IDs of the image's `node` user, so the kubelet can verify non-root
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: reddit-clone
         image: alihussain312008/reddit-clone
@@ -38,3 +45,16 @@ spec:
           limits:
             cpu: 500m
             memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        # Next.js writes optimised images here; the rest of the filesystem stays read-only
+        - name: next-cache
+          mountPath: /app/.next/cache
+      volumes:
+      - name: next-cache
+        emptyDir:
+          sizeLimit: 256Mi
